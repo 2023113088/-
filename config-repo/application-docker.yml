@@ -1,0 +1,4 @@
+# PPT：Git 仓库中的「docker」环境公共配置（敏感项仍在 compose / 本地环境变量）
+logging:
+  level:
+    root: INFO

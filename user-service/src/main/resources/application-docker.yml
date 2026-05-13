@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: "optional:configserver:http://config-server:8888/"
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:3306/userdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:library}
+    password: ${MYSQL_PASSWORD:library_secret_change_me}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://eureka-server:8761/eureka/}
+  instance:
+    prefer-ip-address: true

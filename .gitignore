@@ -1,0 +1,16 @@
+# Maven / IDE
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+*.iml
+.idea/
+.vscode/
+*.class
+
+# 环境隔离：本机密钥与覆盖配置（由 env.example 复制生成）
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db
+.DS_Store
