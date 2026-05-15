@@ -1,10 +1,12 @@
 package edu.hit.library.borrow.service;
 
 import edu.hit.library.borrow.client.BookFeignClient;
+import edu.hit.library.borrow.client.UserFeignClient;
 import edu.hit.library.borrow.client.dto.BookResponse;
 import edu.hit.library.borrow.client.dto.StockDelta;
 import edu.hit.library.borrow.entity.BorrowRecord;
 import edu.hit.library.borrow.repo.BorrowRecordRepository;
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +23,17 @@ public class BorrowService {
 
     private final BorrowRecordRepository borrows;
     private final BookFeignClient books;
+    private final UserFeignClient users;
 
-    public BorrowService(BorrowRecordRepository borrows, BookFeignClient books) {
+    public BorrowService(BorrowRecordRepository borrows, BookFeignClient books, UserFeignClient users) {
         this.borrows = borrows;
         this.books = books;
+        this.users = users;
     }
 
     @Transactional
     public BorrowRecord borrow(Long userId, Long bookId) {
+        ensureUserExists(userId);
         if (borrows.existsByUserIdAndBookIdAndStatus(userId, bookId, "BORROWED")) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "该图书尚未归还，不能重复借阅");
         }
@@ -57,6 +62,7 @@ public class BorrowService {
 
     @Transactional
     public BorrowRecord returnBook(Long userId, Long borrowId) {
+        ensureUserExists(userId);
         BorrowRecord r = borrows.findById(borrowId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "借阅记录不存在"));
         if (!r.getUserId().equals(userId)) {
@@ -79,6 +85,17 @@ public class BorrowService {
 
     @Transactional(readOnly = true)
     public List<BorrowRecord> listForUser(Long userId) {
+        ensureUserExists(userId);
         return borrows.findByUserIdOrderByBorrowTimeDesc(userId);
+    }
+
+    private void ensureUserExists(Long userId) {
+        try {
+            users.getUser(userId);
+        } catch (FeignException.NotFound e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "用户不存在或登录信息无效");
+        } catch (FeignException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "用户服务不可用，请稍后重试");
+        }
     }
 }

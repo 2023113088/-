@@ -1,0 +1,109 @@
+@baseUrl = http://localhost:8080
+@readerToken =
+@adminToken =
+@bookId = 1
+@borrowId = 1
+
+### Books list
+GET {{baseUrl}}/api/books
+
+### Book instance
+GET {{baseUrl}}/api/books/instance
+
+### Register reader
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "reader1",
+  "password": "123456",
+  "email": "reader1@test.com"
+}
+
+### Register admin
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "admin1",
+  "password": "123456",
+  "email": "admin1@test.com",
+  "role": "ADMIN"
+}
+
+### Reader login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "reader1",
+  "password": "123456"
+}
+
+### Admin login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin1",
+  "password": "123456"
+}
+
+### Borrow list without token -> 401
+GET {{baseUrl}}/api/borrows
+
+### Borrow list with reader token
+GET {{baseUrl}}/api/borrows
+Authorization: Bearer {{readerToken}}
+
+### Reader create book -> 403
+POST {{baseUrl}}/api/books
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "title": "Java Microservices",
+  "author": "Tester",
+  "isbn": "978-TEST-1001",
+  "publisher": "Test Press",
+  "category": "Computer",
+  "stock": 5,
+  "price": 66.0
+}
+
+### Admin create book
+POST {{baseUrl}}/api/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Java Microservices",
+  "author": "Tester",
+  "isbn": "978-TEST-1001",
+  "publisher": "Test Press",
+  "category": "Computer",
+  "stock": 5,
+  "price": 66.0
+}
+
+### Borrow book
+POST {{baseUrl}}/api/borrows
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "bookId": {{bookId}}
+}
+
+### Duplicate borrow -> 409
+POST {{baseUrl}}/api/borrows
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "bookId": {{bookId}}
+}
+
+### Return book
+PUT {{baseUrl}}/api/borrows/{{borrowId}}/return
+Authorization: Bearer {{readerToken}}

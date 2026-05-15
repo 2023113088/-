@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: "optional:configserver:http://localhost:8888/"
   application:
     name: GATEWAY-SERVICE
   cloud:
@@ -36,6 +38,10 @@ eureka:
 app:
   jwt:
     secret: ${APP_JWT_SECRET:library-cloud-demo-secret-key-must-be-long-enough-32bytes-min}
+  rate-limit:
+    capacity: ${APP_RATE_LIMIT_CAPACITY:20}
+    refill-tokens: ${APP_RATE_LIMIT_REFILL_TOKENS:20}
+    refill-period-seconds: ${APP_RATE_LIMIT_REFILL_PERIOD_SECONDS:60}
 
 management:
   endpoints:

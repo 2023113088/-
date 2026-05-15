@@ -6,20 +6,29 @@ import edu.hit.library.book.web.dto.BookRequest;
 import edu.hit.library.book.web.dto.BookResponse;
 import edu.hit.library.book.web.dto.StockDelta;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
     private final BookRepository books;
+    private final String serverPort;
+    private final String applicationName;
 
-    public BookController(BookRepository books) {
+    public BookController(
+            BookRepository books,
+            @Value("${server.port}") String serverPort,
+            @Value("${spring.application.name}") String applicationName) {
         this.books = books;
+        this.serverPort = serverPort;
+        this.applicationName = applicationName;
     }
 
     private static BookResponse toDto(Book b) {
@@ -37,6 +46,11 @@ public class BookController {
     @GetMapping
     public List<BookResponse> list() {
         return books.findAll().stream().map(BookController::toDto).toList();
+    }
+
+    @GetMapping("/instance")
+    public Map<String, String> instance() {
+        return Map.of("service", applicationName, "port", serverPort);
     }
 
     @GetMapping("/search")

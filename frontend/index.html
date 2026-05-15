@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Console</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app">
+    <section class="auth-shell" id="authShell">
+      <div class="auth-media">
+        <img src="./assets/library-hero.png" alt="图书馆">
+        <div class="auth-copy">
+          <p>Library Management System</p>
+          <h1>图书馆管理系统</h1>
+          <span>服务注册、借阅流转与权限控制在一个界面中汇合。</span>
+        </div>
+      </div>
+      <div class="auth-panel">
+        <div class="segmented" role="tablist">
+          <button class="segment is-active" data-auth-tab="login">登录</button>
+          <button class="segment" data-auth-tab="register">注册</button>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <label>用户名<input name="username" autocomplete="username" required></label>
+          <label>密码<input name="password" type="password" autocomplete="current-password" required></label>
+          <button type="submit" class="primary">登录</button>
+        </form>
+
+        <form id="registerForm" class="auth-form is-hidden">
+          <label>用户名<input name="username" required></label>
+          <label>邮箱<input name="email" type="email"></label>
+          <label>密码<input name="password" type="password" minlength="4" required></label>
+          <label class="inline-control">
+            <input name="admin" type="checkbox">
+            <span>注册为管理员</span>
+          </label>
+          <button type="submit" class="primary">创建账号</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="workspace is-hidden" id="workspace">
+      <aside class="sidebar">
+        <div class="brand">
+          <strong>Library</strong>
+          <span>Console</span>
+        </div>
+        <nav>
+          <button class="nav-item is-active" data-view="dashboard">概览</button>
+          <button class="nav-item" data-view="books">图书</button>
+          <button class="nav-item" data-view="borrows">我的借阅</button>
+          <button class="nav-item admin-only" data-view="manage">图书管理</button>
+        </nav>
+        <div class="sidebar-foot">
+          <span id="currentUser"></span>
+          <button id="logoutBtn">退出</button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <h2 id="viewTitle">概览</h2>
+            <p id="viewSubtitle">查看系统状态和当前借阅情况</p>
+          </div>
+          <div class="status-chip" id="instanceChip">BOOK-SERVICE --</div>
+        </header>
+
+        <section class="view" id="dashboardView">
+          <div class="metrics">
+            <article><span>图书总数</span><strong id="metricBooks">0</strong></article>
+            <article><span>可借库存</span><strong id="metricStock">0</strong></article>
+            <article><span>我的借阅</span><strong id="metricBorrows">0</strong></article>
+          </div>
+          <div class="panel split-panel">
+            <div>
+              <h3>最近图书</h3>
+              <div id="recentBooks" class="compact-list"></div>
+            </div>
+            <div>
+              <h3>最近借阅</h3>
+              <div id="recentBorrows" class="compact-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view is-hidden" id="booksView">
+          <div class="toolbar">
+            <input id="bookQuery" placeholder="按书名、作者或 ISBN 搜索">
+            <input id="bookCategory" placeholder="按分类筛选">
+            <button id="searchBooksBtn">搜索</button>
+            <button id="resetBooksBtn">重置</button>
+          </div>
+          <div id="booksGrid" class="books-grid"></div>
+        </section>
+
+        <section class="view is-hidden" id="borrowsView">
+          <div id="borrowTable" class="table"></div>
+        </section>
+
+        <section class="view is-hidden" id="manageView">
+          <div class="panel manage-panel">
+            <h3 id="bookFormTitle">新增图书</h3>
+            <form id="bookForm" class="form-grid">
+              <input name="id" type="hidden">
+              <label>书名<input name="title" required></label>
+              <label>作者<input name="author" required></label>
+              <label>ISBN<input name="isbn"></label>
+              <label>出版社<input name="publisher"></label>
+              <label>分类<input name="category"></label>
+              <label>库存<input name="stock" type="number" min="0" required></label>
+              <label>价格<input name="price" type="number" min="0" step="0.01" required></label>
+              <div class="form-actions">
+                <button type="submit" class="primary">保存</button>
+                <button type="button" id="cancelEditBtn">取消</button>
+              </div>
+            </form>
+          </div>
+          <div id="manageTable" class="table"></div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public class JwtAuthGatewayFilter implements GlobalFilter, Ordered {
 
     private static final Pattern BOOK_GET_BY_ID = Pattern.compile("^/api/books/\\d+$");
+    private static final Pattern BOOK_MANAGEMENT_PATH = Pattern.compile("^/api/books(?:/\\d+)?$");
 
     private final SecretKey key;
     private final ObjectMapper objectMapper;
@@ -47,10 +48,16 @@ public class JwtAuthGatewayFilter implements GlobalFilter, Ordered {
         if (method == HttpMethod.POST && ("/api/users/register".equals(path) || "/api/auth/login".equals(path))) {
             return true;
         }
-        if (method == HttpMethod.GET && ("/api/books".equals(path) || "/api/books/search".equals(path))) {
+        if (method == HttpMethod.GET
+                && ("/api/books".equals(path) || "/api/books/search".equals(path) || "/api/books/instance".equals(path))) {
             return true;
         }
         return method == HttpMethod.GET && BOOK_GET_BY_ID.matcher(path).matches();
+    }
+
+    private static boolean requiresAdmin(HttpMethod method, String path) {
+        return (method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.DELETE)
+                && BOOK_MANAGEMENT_PATH.matcher(path).matches();
     }
 
     @Override
@@ -68,8 +75,15 @@ public class JwtAuthGatewayFilter implements GlobalFilter, Ordered {
         String token = auth.substring(7).trim();
         try {
             Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            if (requiresAdmin(method, path) && !"ADMIN".equals(claims.get("role", String.class))) {
+                return forbidden(exchange, "Only administrators can manage books");
+            }
             String sub = claims.getSubject();
-            ServerHttpRequest mutated = request.mutate().header("X-User-Id", sub).build();
+            String role = claims.get("role", String.class);
+            ServerHttpRequest mutated = request.mutate()
+                    .header("X-User-Id", sub)
+                    .header("X-User-Role", role != null ? role : "")
+                    .build();
             return chain.filter(exchange.mutate().request(mutated).build());
         } catch (Exception e) {
             return unauthorized(exchange, "令牌无效或已过期");
@@ -82,6 +96,20 @@ public class JwtAuthGatewayFilter implements GlobalFilter, Ordered {
         try {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, detail);
             pd.setTitle("Unauthorized");
+            byte[] bytes = objectMapper.writeValueAsBytes(pd);
+            return exchange.getResponse()
+                    .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
+        } catch (JsonProcessingException e) {
+            return exchange.getResponse().setComplete();
+        }
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange, String detail) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        exchange.getResponse().getHeaders().setContentType(MediaType.parseMediaType("application/problem+json"));
+        try {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, detail);
+            pd.setTitle("Forbidden");
             byte[] bytes = objectMapper.writeValueAsBytes(pd);
             return exchange.getResponse()
                     .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));

@@ -31,6 +31,7 @@ public class UserController {
         u.setUsername(req.username().trim());
         u.setPasswordHash(encoder.encode(req.password()));
         u.setEmail(req.email() != null ? req.email().trim() : null);
+        u.setRole("ADMIN".equalsIgnoreCase(req.role()) ? "ADMIN" : "READER");
         users.save(u);
         return new UserResponse(u.getId(), u.getUsername(), u.getEmail(), u.getRole());
     }
