@@ -44,7 +44,7 @@ class InMemoryRateLimitGatewayFilterTests {
     private static MockServerWebExchange exchange() {
         return MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/books")
-                        .remoteAddress(new java.net.InetSocketAddress("127.0.0.1", 8080))
+                        .remoteAddress(new java.net.InetSocketAddress("127.0.0.1", 18080))
                         .build()
         );
     }

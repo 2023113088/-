@@ -2,7 +2,8 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $logs = Join-Path $root "target\e2e-logs"
-$java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME "bin\java.exe" } else { "java" }
+$javaFromHome = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME "bin\java.exe" } else { $null }
+$java = if ($javaFromHome -and (Test-Path $javaFromHome)) { $javaFromHome } else { "java" }
 $mvn = "mvn"
 
 $ports = @{
@@ -11,7 +12,7 @@ $ports = @{
     book1 = 19002
     book2 = 19012
     borrow = 19003
-    gateway = 18080
+    gateway = 28080
 }
 
 $processes = @()
@@ -109,7 +110,7 @@ try {
     Start-App "eureka" $eurekaJar "--server.port=$($ports.eureka)"
     Wait-Url "eureka" "http://localhost:$($ports.eureka)"
 
-    $eurekaClientArgs = "--eureka.client.service-url.defaultZone=$eurekaUrl --eureka.client.registry-fetch-interval-seconds=5"
+    $eurekaClientArgs = "--spring.cloud.config.enabled=false --eureka.client.service-url.defaultZone=$eurekaUrl --eureka.client.registry-fetch-interval-seconds=5"
     Start-App "user" $userJar "--server.port=$($ports.user) $eurekaClientArgs" | Out-Null
     $book1Proc = Start-App "book-1" $bookJar "--server.port=$($ports.book1) $eurekaClientArgs"
     $book2Proc = Start-App "book-2" $bookJar "--server.port=$($ports.book2) $eurekaClientArgs"

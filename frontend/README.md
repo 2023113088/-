@@ -1,6 +1,6 @@
 # Frontend
 
-静态前端，默认通过 `http://localhost:8080` 访问 Gateway。
+静态前端，默认通过 `http://localhost:18080` 访问 Gateway。
 
 ## 启动
 
